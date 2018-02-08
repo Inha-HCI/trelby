@@ -1,4 +1,7 @@
 *.pyc
 *.pyo
 .trelby/
-.DS_Store
+*.py~
+*.swp
+dist/
+build/

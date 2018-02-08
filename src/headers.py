@@ -96,7 +96,7 @@ class HeaderString:
     #
     # sample of the format: '1,0,r,,${PAGE}.'
     def load(self, s):
-        a = util.fromUTF8(s).split(",", 4)
+        a = s.split(",", 4)
 
         if len(a) != 5:
             return
@@ -117,7 +117,7 @@ class HeaderString:
         self.text = a[4]
 
     def __str__(self):
-        s = "%d,%d," % (self.line, self.xoff)
+        s = u"%d,%d," % (self.line, self.xoff)
 
         if self.align == util.ALIGN_LEFT:
             s += "l"
@@ -129,6 +129,6 @@ class HeaderString:
         s += util.bools2flags("biu", self.isBold, self.isItalic,
                               self.isUnderlined)
 
-        s += ",,%s" % self.text
+        s += u",,%s" % self.text
 
-        return util.toUTF8(s)
+        return s

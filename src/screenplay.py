@@ -6,6 +6,8 @@ LB_SPACE = 1
 
 # we don't use this anymore, but we have to keep it in order to be able to
 # load old scripts
+# 우리는 더이상 이것을 사용할필요가 없다 하지만 우리는 오래된 스크립트를 로드하기위해 이것을 유지해야만한다.
+# (linebreak types 에 관한 얘기인가?)
 LB_SPACE2 = 2
 
 LB_NONE = 3
@@ -45,7 +47,7 @@ import time
 
 from lxml import etree
 
-# screenplay
+# screenplay : 영화대본, 시나리오
 class Screenplay:
     def __init__(self, cfgGl):
         self.autoCompletion = autocompletion.AutoCompletion()
@@ -139,7 +141,7 @@ class Screenplay:
     # we implement our own custom deepcopy because it's 8-10x faster than
     # the generic one (times reported by cmdSpeedTest using a 119-page
     # screenplay):
-    #
+    # 우리는 우리가 개발한 deepcopy를 구현했다. 왜냐하면 그것이 기존의것보다 8~10배 빠르기 때문이다.
     # ╭─────────────────────────────┬─────────┬────────╮
     # │                             │ Generic │ Custom │
     # ├─────────────────────────────┼─────────┼────────┤
@@ -172,7 +174,6 @@ class Screenplay:
 
         output = util.String()
 
-        output += codecs.BOM_UTF8
         output += "#Version 3\n"
 
         output += "#Begin-Auto-Completion \n"
@@ -206,10 +207,10 @@ class Screenplay:
 
         output += "#Start-Script \n"
 
-        for i in xrange(len(self.lines)):
-            output += util.toUTF8(str(self.lines[i]) + "\n")
+        for line in self.lines:
+            output += (line.__str__() + "\n")
 
-        return str(output)
+        return codecs.BOM_UTF8 + unicode(output).encode("utf-8")
 
     # load script from string s and return a (Screenplay, msg) tuple,
     # where msgs is string (possibly empty) of warnings about the loading
@@ -220,7 +221,7 @@ class Screenplay:
         if s[0:3] != codecs.BOM_UTF8:
             raise error.MiscError("File is not a Trelby screenplay.")
 
-        lines = s[3:].splitlines()
+        lines = s[3:].decode("utf-8").splitlines()
 
         sp = Screenplay(cfgGl)
 
@@ -325,7 +326,7 @@ class Screenplay:
 
                 lb = config.char2lb(s[0], False)
                 lt = config.char2lt(s[1], False)
-                text = util.toInputStr(util.fromUTF8(s[2:]))
+                text = s[2:]
 
                 # convert unknown lb types into LB_SPACE
                 if lb == None:
@@ -524,7 +525,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 for s in ts.items:
                     para = etree.SubElement(content, "p")
                     para.set("class", "title")
-                    para.text = unicode(s, "ISO-8859-1")
+                    para.text = s
 
             para = etree.SubElement(content, "p")
             para.set("class", "title")
@@ -558,7 +559,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             # and now the line text
             para = etree.SubElement(content, "pre")
             para.set("class", htmlMap[line.lt])
-            para.text = unicode(text, "ISO-8859-1")
+            para.text = text
 
         bodyText = etree.tostring(content, encoding='UTF-8', pretty_print=True)
 
@@ -624,7 +625,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 para.set("Type", xmlMap[typ])
 
             paratxt = etree.SubElement(para, "Text")
-            paratxt.text = unicode(txt, "ISO-8859-1")
+            paratxt.text = txt
 
         # FD does not recognize "New Act" by default. It needs an
         # ElementSettings element added.
@@ -705,7 +706,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
             flines.append(txt)
 
-        return util.toUTF8("\n".join(flines))
+        return "\n".join(flines).encode("utf-8")
 
     # generate RTF and return it as a string.
     def generateRTF(self):
@@ -983,7 +984,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 if self.isFirstLineOfElem(i):
                     pg.add(pml.QuarterCircleOp(nx, ny, offset, lw))
                     pg.add(pml.genLine(nx, ny - offset, nw, 0.0, lw))
-                    pg.add(pml.QuarterCircleOp(nx + nw, ny, offset, lw, True))
+                    pg.add(pml.QuarterCircleOp(nx + nw, ny, offset, lw, 0))
 
                     pg.add(pml.TextOp("Note",
                         (nx + nx + nw) / 2.0, ny - offset, 6, pml.ITALIC,
@@ -991,10 +992,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
                 if self.isLastLineOfElem(i):
                     pg.add(pml.QuarterCircleOp(nx, ny + chY, offset, lw,
-                                               False, True))
+                                               180))
                     pg.add(pml.genLine(nx, ny + chY + offset, nw, 0.0, lw))
                     pg.add(pml.QuarterCircleOp(nx + nw, ny + chY, offset, lw,
-                                               True, True))
+                                               270))
 
             if doExtra and (tcfg.lt == SCENE) and self.isFirstLineOfElem(i):
                 pager.sceneContNr = 0
@@ -2402,7 +2403,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 msg = "Empty line."
                 break
 
-            if (len(ln.text.strip("  ")) == 0) and (ln.lt != NOTE):
+            if (len(ln.text.strip(u"  ")) == 0) and (ln.lt != NOTE):
                 msg = "Empty line (contains only spaces)."
                 break
 
@@ -2560,27 +2561,27 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 pass
 
             elif s[0] == "2":
-                pg.add(pml.PDFOp("0.75 g"))
+                pg.add(pml.SetFillGray(0.75))
                 w = 50.0
                 pg.add(pml.RectOp(doc.w / 2.0 - w / 2.0, cfg.marginTop +
                     y * chY + chY / 4, w, chY / 2.0))
-                pg.add(pml.PDFOp("0.0 g"))
+                pg.add(pml.SetFillGray(0.0))
 
             else:
                 color = ""
 
                 if s[0] == "-":
-                    color = "1.0 0.667 0.667"
+                    color = (1.0,0.667,0.667)
                 elif s[0] == "+":
-                    color = "0.667 1.0 0.667"
+                    color = (0.667,1.0,0.667)
                 elif s[0] == "^":
-                    color = "1.0 1.0 0.467"
+                    color = (1.0,1.0,0.467)
 
                 if color:
-                    pg.add(pml.PDFOp("%s rg" % color))
+                    pg.add(pml.SetFillRGB(color))
                     pg.add(pml.RectOp(cfg.marginLeft, cfg.marginTop + y * chY,
                         doc.w - cfg.marginLeft - 5.0, chY))
-                    pg.add(pml.PDFOp("0.0 g"))
+                    pg.add(pml.SetFillGray(0.0))
 
                 textOps.append(pml.TextOp(s[1:], cfg.marginLeft,
                     cfg.marginTop + y * chY, cfg.fontSize))
@@ -2959,10 +2960,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         if len(char) != 1:
             return
 
-        kc = ord(char)
-
-        if not util.isValidInputChar(kc):
+        if not util.isValidInputChar(char):
             return
+
+        kc = ord(char)
 
         isSpace = char == " "
 
@@ -3002,7 +3003,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                 u = undo.SinglePara(self, undo.CMD_ADD_CHAR, self.line)
 
         if self.capitalizeNeeded():
-            char = util.upper(char)
+            char = char.upper()
 
         ls = self.lines
         s = ls[self.line].text
@@ -3011,11 +3012,11 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             s = ls[self.line].text
 
             if s[self.column - 1] == "i":
-                if not util.isAlnum(char):
+                if not char.isalpha():
                     doIt = False
 
                     if self.column > 1:
-                        if not util.isAlnum(s[self.column - 2]):
+                        if not s[self.column - 2].isalpha():
                             doIt = True
                     else:
                         if (self.line == 0) or \
@@ -3227,7 +3228,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
 # one line in a screenplay
 class Line:
-    def __init__(self, lb = LB_LAST, lt = ACTION, text = ""):
+    def __init__(self, lb = LB_LAST, lt = ACTION, text = u""):
 
         # line break type
         self.lb = lb

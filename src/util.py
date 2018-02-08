@@ -12,6 +12,7 @@ import os
 import re
 import tempfile
 import time
+import unicodedata
 
 import StringIO
 
@@ -55,19 +56,10 @@ _iso_8859_1_map = {
 _to_upper = ""
 _to_lower = ""
 
-# translate table for converting strings to only contain valid input
-# characters
-# 유효한 입력 문자만을 포함한 스트링으로 변환하기 위한 번역 테이블.
-_input_tbl = ""
-
 # translate table that converts A-Z -> a-z, keeps a-z as they are, and
 # converts everything else to z.
 # 번역 테이블 대문자를 소문자로 소문자는 그대로 소문자로. 그리고 다른 모든것들을 z 로 바꿉니다.
 _normalize_tbl = ""
-
-# identity table that maps each character to itself. used by deleteChars.
-# 각 character를 각각에 맵핑시켜주는 정체성 테이블. deleteChar에서 쓰임
-_identity_tbl = ""
 
 # map some fancy unicode characters to their nearest ASCII/Latin-1
 # equivalents so when people import text it's not mangled to uselessness
@@ -86,8 +78,7 @@ _fancy_unicode_map = {
 permDc = None
 
 def init(doWX = True):
-    global _to_upper, _to_lower, _input_tbl, _normalize_tbl, _identity_tbl, \
-           permDc
+    global _to_upper, _to_lower, _normalize_tbl, permDc
 
     # setup ISO-8859-1 case-conversion stuff // ISO-8859-1 은 다양한 언어를 표현하기위해 사용되는 것이고, 한국어는 포함되지 않는다.
     tmpUpper = []
@@ -105,13 +96,6 @@ def init(doWX = True):
         _to_upper += chr(tmpUpper[i])
         _to_lower += chr(tmpLower[i])
 
-    # valid input string stuff 
-    for i in range(256):
-        if isValidInputChar(i):
-            _input_tbl += chr(i) # 유효한 입력 문자만을 포함한 스트링으로 변환하기 위한 번역 테이블.
-        else:
-            _input_tbl += "|"
-
     for i in range(256):
         # "a" - "z"
         if (i >= 97) and (i <= 122):
@@ -125,8 +109,6 @@ def init(doWX = True):
 
         _normalize_tbl += ch # 번역 테이블 대문자를 소문자로 소문자는 그대로 소문자로. 그리고 다른 모든것들을 z 로 바꿉니다.
 
-    _identity_tbl = "".join([chr(i) for i in range(256)]) # 각 character를 각각에 맵핑시켜주는 정체성 테이블. deleteChar에서 쓰임
-
     if doWX:
         # dunno if the bitmap needs to be big enough to contain the text
         # we're measuring...
@@ -139,49 +121,24 @@ def init(doWX = True):
 # that doesn't need locales etc
 # string.upper/lower/capitalize처럼 우리의 캐릭터셋 핸들링을 위한 것. 로컬이 필요로 하지 않음.
 def upper(s):
-    return s.translate(_to_upper)
+    #TODO: Factor this out
+    return s.upper()
 
 def lower(s):
-    return s.translate(_to_lower)
+    #TODO: Factor this out
+    return s.lower()
 
 def capitalize(s):
     return upper(s[:1]) + s[1:]
 
-# return 's', which must be a unicode string, converted to a ISO-8859-1
-# 8-bit string. characters not representable in ISO-8859-1 are discarded.
-# s 를 받아서 s를 리턴해주는데 ISO-8859-1 8bit string으로 바꿔서 리턴한다. 그리고 이것은 유니코드 스트링이어야만 한다.
-# ISO-8859-1 에서 표현할 수 없는 문자는 버려진다.
-def toLatin1(s):
-    return s.encode("ISO-8859-1", "ignore")
+# returns True if unichar is a valid character to add to the script.
+def isValidInputChar(unichar):
+    return not unicodedata.category(unichar).startswith("C")
 
-# return 's', which must be a string of ISO-8859-1 characters, converted
-# to UTF-8.
-# UTF-8로 변환된 s를 리턴하는데, ISO 8859 형식의 문자열이어야한다.
-def toUTF8(s):
-    return unicode(s, "ISO-8859-1").encode("UTF-8")
-
-# return 's', which must be a string of UTF-8 characters, converted to
-# ISO-8859-1, with characters not representable in ISO-8859-1 discarded
-# and any invalid UTF-8 sequences ignored.
-# utf-8 문자형태의 스트링인 s를 리턴한다. s 는 iso-
-def fromUTF8(s):
-    return s.decode("UTF-8", "ignore").encode("ISO-8859-1", "ignore")
-
-# returns True if kc (key-code) is a valid character to add to the script.
-# 스크립트에 추가하는 key code가 유효한 문자이면 True를 리턴한다.
-def isValidInputChar(kc):
-    # [0x80, 0x9F] = unspecified control characters in ISO-8859-1, added
-    # characters like euro etc in windows-1252. 0x7F = backspace, 0xA0 =
-    # non-breaking space, 0xAD = soft hyphen.
-
-    return (kc >= 32) and (kc <= 255) and not\
-           ((kc >= 0x7F) and (kc < 0xA0)) and (kc != 0xAD)
-
-# return s with all non-valid input characters converted to valid input
-# characters, except form feeds, which are just deleted.
-# 모든 비유효한 인풋 문자열을 유효한 인풋 문자열로 바꿔서 s를 리턴한다. 
+# return s with all non-valid input characters removed
 def toInputStr(s):
-    return s.translate(_input_tbl, "\f")
+    #print "toInputStr(%s)" % repr(s)
+    return u"".join([unichar for unichar in s if isValidInputChar(unichar)])
 
 # replace fancy unicode characters with their ASCII/Latin1 equivalents.
 # 멋진 유니코드 문자를 ASCII/Latin1로 바꾼다.
@@ -192,15 +149,11 @@ def removeFancyUnicode(s):
 # script
 # 외부 유니코드 입력을 script에 맞는 형태로 바꾼다.
 def cleanInput(s):
-    return toInputStr(toLatin1(removeFancyUnicode(s)))
+    return toInputStr(removeFancyUnicode(s))
 
 # replace s[start:start + width] with toInputStr(new) and return s
 def replace(s, new, start, width):
     return s[0 : start] + toInputStr(new) + s[start + width:]
-
-# delete all characters in 'chars' (a string) from s and return that.
-def deleteChars(s, chars):
-    return s.translate(_identity_tbl, chars)
 
 # returns s with all possible different types of newlines converted to
 # unix newlines, i.e. a single "\n"
@@ -247,15 +200,6 @@ def str2int(s, defVal, minVal = None, maxVal = None, radix = 10):
 
     return clamp(val, minVal, maxVal)
 
-# extract 'name' field from each item in 'seq', put it in a list, and
-# return that list.
-def listify(seq, name):
-    l = []
-    for it in seq:
-        l.append(getattr(it, name))
-
-    return l
-
 # return percentage of 'val1' of 'val2' (both ints) as an int (50% -> 50
 # etc.), or 0 if val2 is 0.
 def pct(val1, val2):
@@ -274,16 +218,9 @@ def pctf(val1, val2):
 
 # return float(val1) / val2, or 0.0 if val2 is 0.0
 def safeDiv(val1, val2):
-    if val2 != 0.0:
+    try:
         return float(val1) / val2
-    else:
-        return 0.0
-
-# return float(val1) / val2, or 0.0 if val2 is 0
-def safeDivInt(val1, val2):
-    if val2 != 0:
-        return float(val1) / val2
-    else:
+    except:
         return 0.0
 
 # for each character in 'flags', starting at beginning, checks if that
@@ -439,7 +376,7 @@ def getTextExtent(font, s):
 # get height of font in pixels
 def getFontHeight(font):
     permDc.SetFont(font)
-    return permDc.GetTextExtent("_\xC5")[1]
+    return permDc.GetTextExtent(u"_\u00c5")[1]
 
 # return how many mm tall given font size is.
 def getTextHeight(size):
@@ -461,8 +398,7 @@ def createPixelFont(height, family, style, weight):
     # FIXME: what's this "keep trying even once we go over the max height"
     # stuff? get rid of it.
     while 1:
-        fn = wx.Font(fs, family, style, weight,
-                     encoding = wx.FONTENCODING_ISO8859_1)
+        fn = wx.Font(fs, family, style, weight)
         h = getFontHeight(fn)
         diff = height -h
 
@@ -478,8 +414,7 @@ def createPixelFont(height, family, style, weight):
 
         fs += 2
 
-    return wx.Font(selected, family, style, weight,
-                   encoding = wx.FONTENCODING_ISO8859_1)
+    return wx.Font(selected, family, style, weight)
 
 def reverseComboSelect(combo, clientData):
     for i in range(combo.GetCount()):
@@ -521,11 +456,7 @@ def isWordBoundary(c):
     if c == "'":
         return False
 
-    return not isAlnum(c)
-
-# return True if c is an alphanumeric character
-def isAlnum(c):
-    return unicode(c, "ISO-8859-1").isalnum()
+    return not c.isalnum()
 
 # make sure s (unicode) ends in suffix (case-insensitively) and return
 # that. suffix must already be lower-case.
@@ -806,7 +737,8 @@ class Key:
 
     # returns True if key is a valid input character
     def isValidInputChar(self):
-        return not self.ctrl and not self.alt and isValidInputChar(self.kc)
+        return False
+        #return not self.ctrl and not self.alt and isValidInputChar(unichr(self.kc))
 
     # toInt/fromInt serialize/deserialize to/from a 35-bit integer, laid
     # out like this:
@@ -842,11 +774,8 @@ class Key:
         if self.shift:
             s += "SHIFT+"
 
-        if isValidInputChar(self.kc):
-            if self.kc == wx.WXK_SPACE:
-                s += "Space"
-            else:
-                s += chr(self.kc)
+        if isValidInputChar(unichr(self.kc)):
+            s += ("Space" if self.kc == wx.WXK_SPACE else chr(self.kc))
         else:
             kname = self.__class__.keyMap.get(self.kc)
 
@@ -879,7 +808,7 @@ class String:
         return "".join(self.data)
 
     def __iadd__(self, s):
-        s2 = str(s)
+        s2 = s
 
         self.data.append(s2)
         self.pos += len(s2)

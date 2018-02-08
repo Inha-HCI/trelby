@@ -22,19 +22,19 @@ class AutoCompletion:
 
         t = Type(screenplay.TRANSITION) #Transition
         t.items = [
-            "BACK TO:",
-            "CROSSFADE:",
-            "CUT TO:",
-            "DISSOLVE TO:",
-            "FADE IN:",
-            "FADE OUT",
-            "FADE TO BLACK",
-            "FLASHBACK TO:",
-            "JUMP CUT TO:",
-            "MATCH CUT TO:",
-            "SLOW FADE TO BLACK",
-            "SMASH CUT TO:",
-            "TIME CUT:"
+            u"BACK TO:",
+            u"CROSSFADE:",
+            u"CUT TO:",
+            u"DISSOLVE TO:",
+            u"FADE IN:",
+            u"FADE OUT",
+            u"FADE TO BLACK",
+            u"FLASHBACK TO:",
+            u"JUMP CUT TO:",
+            u"MATCH CUT TO:",
+            u"SLOW FADE TO BLACK",
+            u"SMASH CUT TO:",
+            u"TIME CUT:"
             ]
         self.types[t.ti.lt] = t
         
@@ -94,7 +94,7 @@ class Type:
 
             v.addBool("enabled", True, "Enabled")
             v.addList("items", [], "Items",
-                      mypickle.StrLatin1Var("", "", ""))
+                      mypickle.StrUnicodeVar("", "", ""))
 
             v.makeDicts()
 

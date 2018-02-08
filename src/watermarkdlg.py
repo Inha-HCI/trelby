@@ -123,7 +123,7 @@ class WatermarkDlg(wx.Dialog):
             ops = []
 
             # almost-not-there gray
-            ops.append(pml.PDFOp("0.85 g")) # 아마 color 지정. 그레이로
+            ops.append(pml.SetFillGray(0.85))
 
             if common:
                 wm = pml.TextOp(
@@ -139,7 +139,7 @@ class WatermarkDlg(wx.Dialog):
             ops.append(wm)
 
             # ...and back to black
-            ops.append(pml.PDFOp("0.0 g"))
+            ops.append(pml.SetFillGray(0.0))
 
             for page in pmldoc.pages:
                 page.addOpsToFront(ops)

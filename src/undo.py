@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import screenplay
 
+import sys
 import zlib
 
 # Which command uses which undo object:
@@ -65,16 +66,16 @@ def lines2storage(lines):
     if not lines:
         return (0,)
 
-    lines = [str(ln) for ln in lines]
+    lines = [unicode(ln) for ln in lines]
     linesStr = "\n".join(lines)
 
     # instead of having an arbitrary cutoff figure ("compress if < X
     # bytes"), always compress, but only use the compressed version if
     # it's shorter than the non-compressed one.
 
-    linesStrCompressed = zlib.compress(linesStr, 6)
+    linesStrCompressed = zlib.compress(linesStr.encode("utf-8"), 6)
 
-    if len(linesStrCompressed) < len(linesStr):
+    if sys.getsizeof(linesStrCompressed) < sys.getsizeof(linesStr):
         return (len(lines), True, linesStrCompressed)
     else:
         return (len(lines), False, linesStr)
@@ -85,7 +86,7 @@ def storage2lines(storage):
         return []
 
     if storage[1]:
-        linesStr = zlib.decompress(storage[2])
+        linesStr = zlib.decompress(storage[2]).decode("utf-8")
     else:
         linesStr = storage[2]
 
@@ -93,12 +94,7 @@ def storage2lines(storage):
 
 # how much memory is used by the given storage object
 def memoryUsed(storage):
-    # 16 is a rough estimate for the first two tuple members' memory usage
-
-    if storage[0] == 0:
-        return 16
-
-    return 16 + len(storage[2])
+    return sys.getsizeof(storage)
 
 # abstract base class for storing undo history. concrete subclasses
 # implement undo/redo for specific actions taken on a screenplay.

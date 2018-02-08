@@ -28,6 +28,7 @@ import util
 import viewmode
 import watermarkdlg
 
+import unicodedata
 import copy
 import datetime
 import os
@@ -1319,42 +1320,23 @@ class MyCtrl(wx.Control):
         pass
 
     def OnKeyChar(self, ev):
-        kc = ev.GetKeyCode()
+        unichar = unichr(ev.GetUnicodeKey())
+	category = unicodedata.category(unichar) 
+
+        #print "kc: %d, unicodekey: %s, category: %s, ctrl/alt/shift: %d, %d, %d" %\
+        #      (ev.GetKeyCode(), ev.GetUnicodeKey(), category, ev.ControlDown(), ev.AltDown(), ev.ShiftDown())
 
         cs = screenplay.CommandState()
         cs.mark = bool(ev.ShiftDown())
         scrollDirection = config.SCROLL_CENTER
 
-        if not ev.ControlDown() and not ev.AltDown() and \
-               util.isValidInputChar(kc):
-            # WX2.6-FIXME: we should probably use GetUnicodeKey() (dunno
-            # how to get around the isValidInputChar test in the preceding
-            # line, need to test what GetUnicodeKey() returns on
-            # non-input-character events)
+	if ev.ControlDown() or ev.AltDown() or not util.isValidInputChar(unichar):
+	    #print "looks like a command key/combination"
 
-            addChar = True
-
-            # If there's something selected, either remove it, or clear selection.
-            if self.sp.mark and cfgGl.overwriteSelectionOnInsert:
-                if not self.OnCut(doUpdate = False, copyToClip = False):
-                    self.sp.clearMark()
-                    addChar = False
-
-            if addChar:
-                cs.char = chr(kc)
-
-                if opts.isTest and (cs.char == "�"):
-                    self.loadFile(u"sample.trelby")
-                elif opts.isTest and (cs.char == "�"):
-                    self.cmdTest(cs)
-                elif opts.isTest and (cs.char == "�"):
-                    self.cmdSpeedTest(cs)
-                else:
-                    self.sp.addCharCmd(cs)
-
-        else:
-            cmd = mainFrame.kbdCommands.get(util.Key(kc,
+            cmd = mainFrame.kbdCommands.get(util.Key(ev.GetKeyCode(),
                 ev.ControlDown(), ev.AltDown(), ev.ShiftDown()).toInt())
+
+            #print "cmd: %s" % repr(cmd)
 
             if cmd:
                 scrollDirection = cmd.scrollDirection
@@ -1366,6 +1348,29 @@ class MyCtrl(wx.Control):
             else:
                 ev.Skip()
                 return
+
+	else:
+            #print "looks like something the user wants to type into the text"
+
+            addChar = True
+
+            # If there's something selected, either remove it, or clear selection.
+            if self.sp.mark and cfgGl.overwriteSelectionOnInsert:
+                if not self.OnCut(doUpdate = False, copyToClip = False):
+                    self.sp.clearMark()
+                    addChar = False
+
+            if addChar:
+                cs.char = unichar
+
+                if opts.isTest and (cs.char == "�"):
+                    self.loadFile(u"sample.trelby")
+                elif opts.isTest and (cs.char == "�"):
+                    self.cmdTest(cs)
+                elif opts.isTest and (cs.char == "�"):
+                    self.cmdSpeedTest(cs)
+                else:
+                    self.sp.addCharCmd(cs)
 
         self.sp.cmdPost(cs)
 
@@ -2582,11 +2587,6 @@ class MyApp(wx.App):
                           "wxWidgets. This is not supported.",
                           "Error", wx.OK)
             sys.exit()
-
-        # by setting this, we don't have to convert from 8-bit strings to
-        # Unicode ourselves everywhere when we pass them to wxWidgets.
-        # 이 세팅을 통해 wxWidget으로 넘겨줘야할때 언제든 우리는 8비트 스트링을 유니코드로 변화시켜줄 필요가 없다. 
-        wx.SetDefaultPyEncoding("ISO-8859-1")
 
         os.chdir(misc.progPath)
 

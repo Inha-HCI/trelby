@@ -199,18 +199,18 @@ class DialogueChart:
             y = self.chartY + i * self.charY
 
             if (i % 2) == 1:
-                pg.add(pml.PDFOp("0.93 g"))
+                pg.add(pml.SetFillGray(0.93))
                 pg.add(pml.RectOp(self.chartX, y, self.chartWidth,
                                   self.charY))
-                pg.add(pml.PDFOp("0.0 g"))
+                pg.add(pml.SetFillGray(0.0))
 
         # line width to use
         lw = 0.25
 
-        pg.add(pml.PDFOp("0.5 G"))
+        pg.add(pml.SetStrokeGray(0.5))
 
         # dashed pattern
-        pg.add(pml.PDFOp("[2 2] 0 d"))
+        pg.add(pml.SetDash([2,2],0))
 
         # draw grid and page markers
         for i in xrange(pageCnt):
@@ -224,16 +224,16 @@ class DialogueChart:
 
 
         pg.add(pml.RectOp(self.chartX, self.chartY, self.chartWidth,
-                          self.chartHeight, pml.NO_FILL, lw))
+                          self.chartHeight, pml.STROKE, lw))
 
-        pg.add(pml.PDFOp("0.0 G"))
+        pg.add(pml.SetStrokeGray(0.0))
 
         # restore normal line pattern
-        pg.add(pml.PDFOp("[] 0 d"))
+        pg.add(pml.SetDash())
 
         # legend for page content bars
         pg.add(pml.RectOp(self.legendX, self.legendY,
-            self.legendWidth, self.legendHeight, pml.NO_FILL, lw))
+            self.legendWidth, self.legendHeight, pml.STROKE, lw))
 
         self.drawLegend(pg, 0, 1.0, "Other", lw)
         self.drawLegend(pg, 1, 0.7, "Character", lw)
@@ -244,44 +244,35 @@ class DialogueChart:
         for i in xrange(pageCnt):
             x = self.chartX + i * mmPerPage
             y = self.barY + self.barHeight
-            pi = self.pages[i]
-            tlc = pi.getTotalLineCount()
+            page = self.pages[i]
+            tlc = page.getTotalLineCount()
 
-            pg.add(pml.PDFOp("0.3 g"))
-            pct = util.safeDivInt(pi.getLineCount(screenplay.ACTION), tlc)
-            barH = self.barHeight * pct
-            pg.add(pml.RectOp(x, y - barH, mmPerPage, barH))
-            y -= barH
+            if tlc <> 0:
+                for greyvalue, itemType in [
+                        (0.3, screenplay.ACTION),\
+                        (0.5, screenplay.DIALOGUE),\
+                        (0.7, screenplay.CHARACTER)]:
+                    pg.add(pml.SetFillGray(greyvalue))
+                    ratio = page.getLineCount(itemType) / tlc
+                    barH = self.barHeight * ratio
+                    pg.add(pml.RectOp(x, y - barH, mmPerPage, barH))
+                    y -= barH
 
-            pg.add(pml.PDFOp("0.5 g"))
-            pct = util.safeDivInt(pi.getLineCount(screenplay.DIALOGUE), tlc)
-            barH = self.barHeight * pct
-            pg.add(pml.RectOp(x, y - barH, mmPerPage, barH))
-            y -= barH
-
-            pg.add(pml.PDFOp("0.7 g"))
-            pct = util.safeDivInt(pi.getLineCount(screenplay.CHARACTER), tlc)
-            barH = self.barHeight * pct
-            pg.add(pml.RectOp(x, y - barH, mmPerPage, barH))
-            y -= barH
-
-
-        pg.add(pml.PDFOp("0.0 g"))
+        pg.add(pml.SetFillGray(0.0))
 
         # rectangle around page content bars
         pg.add(pml.RectOp(self.chartX, self.barY, self.chartWidth,
-                         self.barHeight, pml.NO_FILL, lw))
+                         self.barHeight, pml.STROKE, lw))
 
-        for i in range(len(self.cinfo)):
+        for i, character in enumerate(self.cinfo):
             y = self.chartY + i * self.charY
-            ci = self.cinfo[i]
 
-            pg.add(pml.TextOp(ci.name, self.margin, y + self.charY / 2.0,
+            pg.add(pml.TextOp(character.name, self.margin, y + self.charY / 2.0,
                 self.charFs, valign = util.VALIGN_CENTER))
 
             for i in xrange(pageCnt):
-                pi = self.pages[i]
-                cnt = pi.getSpeakerLineCount(ci.name)
+                page = self.pages[i]
+                cnt = page.getSpeakerLineCount(character.name)
 
                 if cnt > 0:
                     h = self.charY * (float(cnt) / self.sp.cfg.linesOnPage)
@@ -296,12 +287,12 @@ class DialogueChart:
         x = self.legendX + self.legendMargin
         y = self.legendY + self.legendMargin + pos * self.legendSpacing
 
-        pg.add(pml.PDFOp("%f g" % color))
+        pg.add(pml.SetFillGray(color))
 
         pg.add(pml.RectOp(x, y, self.legendSize, self.legendSize,
                           pml.STROKE_FILL, lw))
 
-        pg.add(pml.PDFOp("0.0 g"))
+        pg.add(pml.SetFillGray(0.0))
 
         pg.add(pml.TextOp(name, x + self.legendSize + 2.0, y, 6))
 
