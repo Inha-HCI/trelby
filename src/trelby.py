@@ -1795,7 +1795,7 @@ class MyFrame(wx.Frame):
         self.menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(self.menuBar)
 
-        self.toolBar = self.CreateToolBar(wx.TB_VERTICAL)
+        self.toolBar = self.CreateToolBar(wx.TB_HORIZONTAL)
 
         def addTB(id, iconFilename, toolTip):
             self.toolBar.AddLabelTool(
