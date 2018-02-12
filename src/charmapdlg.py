@@ -7,7 +7,7 @@ import wx
 """Tools -> CharacterMap 을 누르면 실행되는곳."""
 class CharMapDlg(wx.Dialog):
     def __init__(self, parent, ctrl):
-        wx.Dialog.__init__(self, parent, -1, "Character map")
+        wx.Dialog.__init__(self, parent, -1, u"캐릭터 맵")
 
         self.ctrl = ctrl
 
@@ -16,7 +16,7 @@ class CharMapDlg(wx.Dialog):
         self.charMap = MyCharMap(self)
         hsizer.Add(self.charMap)
 
-        self.insertButton = wx.Button(self, -1, " Insert character ")
+        self.insertButton = wx.Button(self, -1, u" 캐릭터 삽입 ")
         hsizer.Add(self.insertButton, 0, wx.ALL, 10)
         wx.EVT_BUTTON(self, self.insertButton.GetId(), self.OnInsert)
         gutil.btnDblClick(self.insertButton, self.OnInsert)
@@ -25,6 +25,8 @@ class CharMapDlg(wx.Dialog):
 
     def OnInsert(self, event):
         if self.charMap.selected:
+            #글자이름 출력
+            print ord(self.charMap.selected)
             self.ctrl.OnKeyChar(util.MyKeyEvent(ord(self.charMap.selected)))
 '''캐릭터 맵 안의 글자들 출력'''
 class MyCharMap(wx.Window):
@@ -116,6 +118,8 @@ class MyCharMap(wx.Window):
             for x in range(self.cols):
                 i = y * self.cols + x
                 if i < len(self.chars):
+                    #오류나는 곳.
+                    break
                     util.drawText(dc, self.chars[i],
                         x * self.cellSize + self.offset + self.cellSize // 2 + 1,
                         y * self.cellSize + self.offset + self.cellSize // 2 + 1,
