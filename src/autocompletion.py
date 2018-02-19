@@ -49,7 +49,7 @@ class AutoCompletion:
         vals = mypickle.Vars.makeVals(s)
 
         for t in self.types.itervalues():
-            t.load(vals, "AutoCompletion/")
+            t.load(vals, u"자동완성/")
 
         self.refresh()
 
@@ -58,7 +58,7 @@ class AutoCompletion:
         s = ""
 
         for t in self.types.itervalues():
-            s += t.save("AutoCompletion/")
+            s += t.save(u"자동완성/")
 
         return s
 

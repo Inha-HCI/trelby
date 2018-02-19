@@ -15,7 +15,9 @@ import time
 import unicodedata
 
 import StringIO
-
+##
+import codecs
+import sys
 if "TRELBY_TESTING" in os.environ:
     import mock
     wx = mock.Mock()
@@ -569,6 +571,7 @@ def drawLine(dc, x, y, xd, yd):
 
 # draws text aligned somehow. returns a (w, h) tuple of the text extent.
 def drawText(dc, text, x, y, align = ALIGN_LEFT, valign = VALIGN_TOP):
+    
     w, h = dc.GetTextExtent(text)
 
     if align == ALIGN_CENTER:

@@ -8,7 +8,7 @@ import wx
 # 이 부분은 추후 python 3.x 버전때 wxPython 4.xx 로 바뀔 예정임.
 class AutoCompletionDlg(wx.Dialog):
     def __init__(self, parent, autoCompletion):
-        wx.Dialog.__init__(self, parent, -1, "Auto-completion",
+        wx.Dialog.__init__(self, parent, -1, u"자동완성",
                            style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.autoCompletion = autoCompletion
@@ -17,7 +17,7 @@ class AutoCompletionDlg(wx.Dialog):
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        hsizer.Add(wx.StaticText(self, -1, "Element:"), 0,
+        hsizer.Add(wx.StaticText(self, -1, u"요소:"), 0,
                    wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
         
         self.elementsCombo = wx.ComboBox(self, -1, style = wx.CB_READONLY)
@@ -33,11 +33,11 @@ class AutoCompletionDlg(wx.Dialog):
 
         vsizer.Add(wx.StaticLine(self, -1), 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 10)
 
-        self.enabledCb = wx.CheckBox(self, -1, "Auto-completion enabled")
+        self.enabledCb = wx.CheckBox(self, -1, u"자동완성 활성화")
         wx.EVT_CHECKBOX(self, self.enabledCb.GetId(), self.OnMisc)
         vsizer.Add(self.enabledCb, 0, wx.BOTTOM, 10)
 
-        vsizer.Add(wx.StaticText(self, -1, "Default items:"))
+        vsizer.Add(wx.StaticText(self, -1, u"기본 아이템:"))
 
         self.itemsEntry = wx.TextCtrl(self, -1, style = wx.TE_MULTILINE |
                                       wx.TE_DONTWRAP, size = (400, 200))
@@ -48,10 +48,10 @@ class AutoCompletionDlg(wx.Dialog):
 
         hsizer.Add((1, 1), 1)
 
-        cancelBtn = gutil.createStockButton(self, "Cancel")
+        cancelBtn = gutil.createStockButton(self, u"취소")
         hsizer.Add(cancelBtn, 0, wx.LEFT, 10)
 
-        okBtn = gutil.createStockButton(self, "OK")
+        okBtn = gutil.createStockButton(self, u"확인")
         hsizer.Add(okBtn, 0, wx.LEFT, 10)
 
         vsizer.Add(hsizer, 0, wx.EXPAND | wx.TOP, 10)

@@ -92,11 +92,11 @@ class CfgDlg(wx.Dialog):
         hsizer.Add(self.panel, 1, wx.EXPAND)
 
         if isGlobal:
-            self.SetTitle("Settings dialog")
+            self.SetTitle(u"설정 화면")
 
             self.AddPage(GlobalAboutPanel, "About")
-            self.AddPage(ColorsPanel, "Colors")
-            self.AddPage(DisplayPanel, "Display")
+            self.AddPage(ColorsPanel, u"색")
+            self.AddPage(DisplayPanel, u"화면")
             self.AddPage(ElementsGlobalPanel, "Elements")
             self.AddPage(KeyboardPanel, "Keyboard")
             self.AddPage(MiscPanel, "Misc")
@@ -130,13 +130,13 @@ class CfgDlg(wx.Dialog):
 
         hsizer.Add((1, 1), 1)
 
-        applyBtn = gutil.createStockButton(self, "Apply")
+        applyBtn = gutil.createStockButton(self, u"적용")
         hsizer.Add(applyBtn, 0, wx.ALL, 5)
 
-        cancelBtn = gutil.createStockButton(self, "Cancel")
+        cancelBtn = gutil.createStockButton(self, u"취소")
         hsizer.Add(cancelBtn, 0, wx.ALL, 5)
 
-        okBtn = gutil.createStockButton(self, "OK")
+        okBtn = gutil.createStockButton(self, u"확인")
         hsizer.Add(okBtn, 0, wx.ALL, 5)
 
         vsizer.Add(hsizer, 0, wx.EXPAND)
@@ -314,7 +314,7 @@ class DisplayPanel(wx.Panel):
         self.cfg.pbi = self.pbRb.GetSelection()
 
     def updateFontLb(self):
-        names = ["Normal", "Bold", "Italic", "Bold-Italic"]
+        names = [u"기본", u"굵게", u"기울임", u"굵게-기울임"]
 
         # keep track if all fonts have the same width
         widths = set()
@@ -332,10 +332,10 @@ class DisplayPanel(wx.Panel):
             widths.add(util.getTextExtent(f, "iw")[0])
 
         if len(widths) > 1:
-            self.errText.SetLabel("Fonts have different widths")
+            self.errText.SetLabel(u"글씨체들이 다른 너비를 갖고있습니다")
             self.errText.SetForegroundColour((255, 0, 0))
         else:
-            self.errText.SetLabel("Fonts have matching widths")
+            self.errText.SetLabel(u"글씨체들의 너비를 맞추고있습니다")
             self.errText.SetForegroundColour(self.origColor)
 
     def cfg2gui(self):
@@ -351,7 +351,7 @@ class ElementsPanel(wx.Panel):
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        hsizer.Add(wx.StaticText(self, -1, "Element:"), 0,
+        hsizer.Add(wx.StaticText(self, -1, u"요소:"), 0,
                    wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
 
         self.elementsCombo = wx.ComboBox(self, -1, style = wx.CB_READONLY)
@@ -367,8 +367,8 @@ class ElementsPanel(wx.Panel):
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        hsizer.Add(self.addTextStyles("Screen", "screen", self))
-        hsizer.Add(self.addTextStyles("Print", "export", self), 0, wx.LEFT, 10)
+        hsizer.Add(self.addTextStyles(u"Screen", u"screen", self))
+        hsizer.Add(self.addTextStyles(u"Print", u"export", self), 0, wx.LEFT, 10)
 
         vsizer.Add(hsizer, 0, wx.BOTTOM, 10)
 
@@ -448,9 +448,9 @@ class ElementsPanel(wx.Panel):
             pad = 5
 
         self.addCheckBox("Caps", prefix, parent, gsizer, pad)
-        self.addCheckBox("Italic", prefix, parent, gsizer, pad)
-        self.addCheckBox("Bold", prefix, parent, gsizer, pad)
-        self.addCheckBox("Underlined", prefix, parent, gsizer, pad)
+        self.addCheckBox(u"기울임", prefix, parent, gsizer, pad)
+        self.addCheckBox(u"굵게", prefix, parent, gsizer, pad)
+        self.addCheckBox(u"밑줄", prefix, parent, gsizer, pad)
 
         hsizer.Add(gsizer, 0, wx.EXPAND)
 
@@ -460,7 +460,7 @@ class ElementsPanel(wx.Panel):
         cb = wx.CheckBox(parent, -1, name)
         wx.EVT_CHECKBOX(self, cb.GetId(), self.OnStyleCb)
         sizer.Add(cb, 0, wx.TOP, pad)
-        setattr(self, prefix + name + "Cb", cb)
+        setattr(self, prefix + name + u"체크박스", cb)
 
     def OnKillFocus(self, event):
         self.OnMisc()
