@@ -210,7 +210,7 @@ class PDFExporter:
 
             for op in page.ops:
                 textobject = self.canvas.beginText()
-                textobject.setTextOrigin(3, 2.5*inch)
+                #textobject.setTextOrigin(3, 2.5*inch)
                 textobject.setFont("Helvetica", 12)
                 textobject.setCharSpace(4.5)
                 self.canvas.drawText(textobject)
