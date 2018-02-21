@@ -1691,7 +1691,7 @@ class MyFrame(wx.Frame):
         tmp.Append(ID_SETTINGS_LOAD, u"설정 불러오기")
         tmp.Append(ID_SETTINGS_SAVE_AS, u"설정 내보내기")
         tmp.AppendSeparator()
-        tmp.Append(ID_SETTINGS_SC_DICT, "맞춤법 검사 사전")
+        tmp.Append(ID_SETTINGS_SC_DICT, u"맞춤법 검사 사전")
         settingsMenu = tmp
 
         fileMenu.AppendMenu(ID_FILE_SETTINGS, u"설정", tmp)
