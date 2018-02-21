@@ -209,6 +209,11 @@ class PDFExporter:
             self.currentFont = None
 
             for op in page.ops:
+                textobject = self.canvas.beginText()
+                textobject.setTextOrigin(3, 2.5*inch)
+                textobject.setFont("Helvetica", 12)
+                textobject.setCharSpace(4.5)
+                self.canvas.drawText(textobject)
                 op.pdfOp.draw(op, pageNr, self.canvas, self)
 
             if self.doc.defPage == pageNr:
@@ -277,7 +282,7 @@ class PDFExporter:
     # convert mm to points (1/72 inch).
     def mm2points(self, mm):
         # 2.834 = 72 / 25.4
-        return mm * 2.83464567
+        return mm * 4.83464567
 
     # convert x coordinate
     def x(self, x):
